@@ -113,18 +113,18 @@ let screenSize = UIScreen.main.bounds
             handler: { (cmSampleBuffer, rpSampleType, error) in
                 guard error == nil else {
                     //Handle error
-                    print("Error starting capture");
+                    // print("Error starting capture");
                     self.myResult!(false)
                     return;
                 }
 
                 switch rpSampleType {
                 case RPSampleBufferType.video:
-                    print("writing sample....");
+                    // print("writing sample....");
                     if self.videoWriter?.status == AVAssetWriter.Status.unknown {
 
                         if (( self.videoWriter?.startWriting ) != nil) {
-                            print("Starting writing");
+                            // print("Starting writing");
                             self.myResult!(true)
                             self.videoWriter?.startWriting()
                             self.videoWriter?.startSession(atSourceTime:  CMSampleBufferGetPresentationTimeStamp(cmSampleBuffer))
@@ -133,22 +133,30 @@ let screenSize = UIScreen.main.bounds
 
                     if self.videoWriter?.status == AVAssetWriter.Status.writing {
                         if (self.videoWriterInput?.isReadyForMoreMediaData == true) {
-                            print("Writting a sample");
+                            // print("Writting a sample");
                             if  self.videoWriterInput?.append(cmSampleBuffer) == false {
-                                print(" we have a problem writing video")
+                                // print(" we have a problem writing video")
                                 self.myResult!(false)
                             }
                         }
                     }
 
+                case RPSampleBufferType.audioMic:
+                    if self.videoWriter?.status == AVAssetWriter.Status.writing {
+                        if self.audioInput.isReadyForMoreMediaData {
+                            // print("audioMic data added")
+                            self.audioInput.append(cmSampleBuffer)
+                        }
+                    }
 
                 default:
-                   print("not a video sample, so ignore");
+                    ();
+                //    print("not a video sample, so ignore");
                 }
             } ){(error) in
                         guard error == nil else {
                            //Handle error
-                           print("Screen record not allowed");
+                        //    print("Screen record not allowed");
                            self.myResult!(false)
                            return;
                        }
@@ -162,7 +170,7 @@ let screenSize = UIScreen.main.bounds
         //Stop Recording the screen
         if #available(iOS 11.0, *) {
             RPScreenRecorder.shared().stopCapture( handler: { (error) in
-                print("stopping recording");
+                // print("stopping recording");
             })
         } else {
           //  Fallback on earlier versions
@@ -172,7 +180,7 @@ let screenSize = UIScreen.main.bounds
         self.audioInput?.markAsFinished();
         
         self.videoWriter?.finishWriting {
-            print("finished writing video");
+            // print("finished writing video");
 
             //Now save the video
             PHPhotoLibrary.shared().performChanges({
